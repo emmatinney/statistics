@@ -1,0 +1,512 @@
+---
+title: "ADNIDOD"
+author: "Emma Tinney"
+date: "11/20/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+setwd("/Users/emmatinney/Library/Mobile Documents/com~apple~CloudDocs/Documents/Northeastern/CCBH_Lab/")
+
+library(readxl)
+adni <- read_excel("/Users/emmatinney/Library/Mobile Documents/com~apple~CloudDocs/Documents/Northeastern/CCBH_Lab/Projects/ADNIDOD/data/DTI_stats_data.xlsx")
+T1 <- subset(df, timepoint=="1")
+T2 <- subset(df, timepoint=="2")
+T1tbi <- subset(T1, TBI=="1")
+T1notbi <- subset(T1, TBI="0")
+T2tbi <- subset(T2, TBI=="1")
+T2notbi <- subset(T2, TBI=="0")
+TBI <- subset(data_adni, TBI=="1")
+noTBIpsqi <- subset(df, TBInumeric=="1")
+```
+# linear regression 
+```{r}
+
+MIMS_DATA$gender<-ifelse(MIMS_DATA$sex=="M",1,0)
+summary(lm(formula = sf12_change$PSQI.x ~ cog_change_both$PCS12_change))
+summary(lm(formula = TBI$FA.x ~ TBI$PCS12 + TBI$TBItotal + TBI$PTAGE + TBI$PTEDUCAT + TBI$ptsdcurr  + TBI$ptsdlife))
+
+summary(lm(formula = data_adni$AD_anterior_internal_cap_l ~ data_adni$TBI + data_adni$PTAGE + data_adni$PTEDUCAT + data_adni$capslife + data_adni$ptsdcurr  + data_adni$ptsdlife))
+summary(lm(formula = data_adni$AD_anterior_internal_cap_l ~ data_adni$TBI + data_adni$PTAGE + data_adni$PTEDUCAT + data_adni$capslife + data_adni$ptsdcurr  + data_adni$ptsdlife))
+joined_data_dti$PTEDUCAT <- as.numeric(joined_data_dti$PTEDUCAT) 
+summary(lm(formula = MIMS_DATA$MRE_Stiffness ~ MIMS_DATA$`Cognition Total Composite Score v1.1` + MIMS_DATA$gender + MIMS_DATA$age))
+# model assumptions 
+data_adni$PTEDUCAT <- as.numeric(data_adni$PTEDUCAT)
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ AVDELTOT + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = T2tbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ AVTOT, data = T1tbi))
+
+# linear regression diagnostics funciton- call the function using diagnostics(x,y)
+diagnostics <-function(x,y) {
+  par(mfrow=c(2,2)) #plots 4 plots to visually check assumptions 
+  plot(lm({{x}} ~ {{y}}))
+}
+
+```
+# linear regression with interaction 
+```{r}
+summary(lm(formula = cog_change_both$AVPOS_change ~ cog_change_both$PSQI + cog_change_both$AVPOS_change:cog_change_both$TBI))
+
+summary(lm(formula = df$AVPOS_change ~ df$AD_BCC + df$TBItotal + df$PTAGE + df$PTEDUCAT + df$ptsdcurr  + df$ptsdlife + df$SITEID + df$capscurr + df$capslife))
+
+summary(lm(formula = TBI$AVPOS_change ~ TBI$AD_BCC + TBI$TBItotal + TBI$PTAGE + TBI$PTEDUCAT + TBI$ptsdcurr  + TBI$ptsdlife + TBI$SITEID + TBI$capscurr + TBI$capslife))
+summary(lm(formula = noTBI$AVPOS_change ~ noTBI$AD_BCC + noTBI$PTAGE + noTBI$PTEDUCAT + noTBI$ptsdcurr  + noTBI$ptsdlife + noTBI$SITEID + noTBI$capscurr + noTBI$capslife))
+summary(lm(formula = cog_change_both$AVPOS_change ~ cog_change_both$PSQI + cog_change_both$AVPOS_change:cog_change_both$TBI))
+
+df$PTEDUCAT <- as.numeric(df$PTEDUCAT)
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQI + TBI:PSQI + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + dummyvariable1, data = df))
+
+```
+# plots
+```{r}
+library(rlang)
+library(ggplot2)
+library(dplyr)
+scatterplot <- function(dataframe, x, y, ylab, xlab) {
+  ggplot(data = dataframe, aes(x={{x}}, y = {{y}})) + 
+    geom_point(color =  "#663399") + 
+    theme(
+      # Hide panel borders and remove grid lines
+      panel.border = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_blank(),
+      # Change axis line
+      axis.line = element_line(colour = "black")
+    ) +
+    labs(y=ylab, x = xlab) +
+    stat_smooth(method = "lm", col = "#cc8400")
+}
+
+# interaction models
+library(rlang)
+library(ggplot2)
+ggplot(TBI, aes(x = AVPOS_change, y = AD_anterior_internal_cap_l)) + 
+  geom_point(aes(color = factor(TBI))) + 
+  theme(
+    # Hide panel borders and remove grid lines
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    # Change axis line
+    axis.line = element_line(colour = "black")
+    ) +
+  labs(y="Axial Diffusivity", x = "Cognitive Change") +
+  geom_smooth(method = "lm", aes(color = factor(TBI)))
+
+
+ggplot(T2tbi, aes(x = AVDELTOT, y = AD_anterior_internal_cap_l)) + 
+  geom_point() + 
+  theme(
+    # Hide panel borders and remove grid lines
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    # Change axis line
+    axis.line = element_line(colour = "black")
+    ) +
+  labs(y="Axial Diffusivity", x = "Delayed Recall") +
+  geom_smooth(method = "lm")
+```
+#control for multiple comparisons
+```{r}
+#control for multiple comparisons using false discovery rate (FDR)
+library(readxl) #need to create excel or csv of pvalues from all models
+pvals <- read_excel("Desktop/pvals.xlsx", sheet = "Hoja1")
+View(pvals)
+pvals$fdrval<-p.adjust(pvals$pval, method="fdr")
+```
+# mediation 
+```{r}
+library(mediation)
+model.M <- lm(AVTOT ~ AD_anterior_internal_cap_l, T2tbi) # total effect (X -> Y)
+model.Y <- lm(PSQI ~ AD_anterior_internal_cap_l + AD_anterior_internal_cap_l, T2tbi) # direct effect (X->Y + M)
+summary(model.M)
+
+results <- mediate(model.M, model.Y, treat='AD_anterior_internal_cap_l', mediator='PSQI', boot=TRUE, sims=1000, data=T2tbi)
+
+fit.mediator<-lm(PSQI~AD_anterior_internal_cap_l,T2)
+
+fit.dv<-lm(AVDELTOT~AD_anterior_internal_cap_l + PSQI,T2)
+results <- mediate(fit.mediator, fit.dv, treat='AD_anterior_internal_cap_l', mediator='PSQI', boot=T, sims=1000)
+
+summary(results)
+plot(results)
+
+TBI$AVPOS_change <- as.numeric(TBI$AVPOS_change)
+
+fit.mediator<-lm(PSQI~AD_anterior_internal_cap_l + SITEID + PTAGE + PTEDUCAT + gdscore + ptsdcurr  + ptsdlife ,TBI2)
+
+fit.dv<-lm(AVPOS_change~AD_anterior_internal_cap_l + PSQI + SITEID + PTAGE + PTEDUCAT + gdscore + ptsdcurr  + ptsdlife ,TBI2)
+
+results <- mediate(fit.mediator, fit.dv, treat='AD_anterior_internal_cap_l', mediator='PSQI', boot=T)
+
+summary(results)
+plot(results)
+T1$AVPOS_change <- as.numeric(T1$AVPOS_change)
+summary(lm(AD_anterior_internal_cap_l ~ AVDELTOT + TBItotal + SITEID + PTAGE + PTEDUCAT + gdscore + ptsdcurr  + ptsdlife ,T2))
+
+```
+# beta
+```{r}
+contcat <- lm(MRE_Stiffness ~ V02Max + gender + age +V02Max:type,data=MIMS_DATA)
+emtrends(contcat, ~ type, var="V02Max")
+emtrends(contcat, pairwise ~ type, var="V02Max")
+contcata <- lm(MRE_DR ~ V02Max + gender + age +V02Max:type,data=MIMS_DATA)
+emtrends(contcata, ~ type, var="V02Max")
+emtrends(contcata, pairwise ~ type, var="V02Max")
+```
+#moderation - does the efffect of health on dti depend on 
+```{r}
+#compute interaction term
+DTI_stats_data$TBI <- as.numeric(DTI_stats_data$TBI)
+psqi<-DTI_stats_data$PSQI*DTI_stats_data$TBI
+summary(lm(info$L3_fornix2 ~ DTI_stats_data$PSQI + DTI_stats_data$TBI + psqi))
+sfq<-adni$sfqtotal*adni$TBI
+summary(lm(adni$FA_SF12 ~ adni$sfqtotal + adni$TBI + sfq))
+bmi<-info$BMI.x*info$TBInumeric
+summary(lm(info$MD.x ~ info$BMI.x + info$TBI + bmi))
+sfq<-info$SFQ2*info$TBInumeric
+summary(lm(info$AD ~ info$SFQ2 + info$TBI + sfq))
+psq<-info$PSQtotal*info$TBInumeric
+summary(lm(info$AD ~ info$PSQtotal + info$TBI + psq))
+sfq<-info$SFQ2*info$TBInumeric
+summary(lm(info$AD ~ info$SFQ2 + info$TBI + sfq))
+psq<-info$PSQtotal*info$TBInumeric
+summary(lm(info$AD ~ info$PSQtotal + info$TBI + psq))
+sfq<-info$SFQ2*info$TBInumeric
+summary(lm(info$AD ~ info$SFQ2 + info$TBI + sfq))
+```
+
+```{r save dataframe}
+install.packages("writexl")
+library("writexl")
+write_xlsx(PSQI, "Documents/Northeastern/CCBH_Lab/Projects/ADNIDOD/data/psqi1.xlsx")
+```
+
+
+```{r}
+#test of proportions
+count(TBI, gdscore)
+prop.test(x = c(81, 117), n = c(103, 156))
+#correlation tests
+cor.test(noTBI$MCS12, noTBI$AVPOS_change)
+#t test between group
+t.test(TBIpsqi$PSQ_comp1, noTBIpsqi$PSQ_comp1)
+```
+```
+```{r}
+#cog tests
+
+summary(lm(formula = AVPOS_change ~ AD_anterior_internal_cap_l  + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data=data_adni))
+
+
+#Change in cognition overtime between TBI and no TBI
+summary(lm(formula = AVDEL30MIN ~ TBI + timepoint + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife + TBI*timepoint,data=df2))
+summary(lm(formula = AVTOT ~ TBI + timepoint + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife + TBI*timepoint,data=df2))
+
+mean(T1tbi$PCS12)
+mean(T2tbi$PCS12)
+mean(T1notbi$PCS12)
+mean(T2notbi$PCS12)
+mean(T1tbi$MCS12)
+mean(T2tbi$MCS12)
+mean(T1notbi$MCS12)
+mean(T2notbi$MCS12)
+```
+
+#fmri
+```{r}
+
+summary(lm(formula = psqi_stringent ~ PSQI + TBI:PSQI))
+summary(lm(formula = psqi_stringent ~ AVPOS_change + TBI:PSQI + TBI + SITEID + PTAGE + TBItotal + gdscore + ptsdcurr  + ptsdlife, data = fmri_2))
+
+# Remove any rows with missing value
+fmri <- fmri[ !(fmri$c2_psqi_phg %in% NA), ]
+fmri_2$psqi_stringent <- as.numeric(fmri_2$psqi_stringent)
+fmri$c1_psqi_phg <- as.numeric(fmri$c1_psqi_phg)
+fmri_2$PTEDUCAT <- as.numeric(fmri_2$PTEDUCAT)
+fmri_2$AVPOS_change <- as.numeric(fmri_2$AVPOS_change)
+#plot
+library(ggplot2)
+
+ggplot(df, aes(x = AVPOS_change, y =  AD_anterior_internal_cap_l)) + 
+  geom_point(aes(color = factor(TBI))) + 
+  theme(
+    # Hide panel borders and remove grid lines
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    # Change axis line
+    axis.line = element_line(colour = "black")
+    ) +
+  labs(y="fMRI Cluster", x = "Cognitive Change") +
+  geom_smooth(method = "lm", aes(color = factor(TBI)))
+  
+fmritbi <- subset(fmri_2, TBI=="1")
+fmrinotbi <- subset(fmri_2, TBI=="0")
+
+
+summary(lm(formula = psqi_stringent ~ PSQI, data = fmrinotbi))
+summary(lm(formula = psqi_stringent ~ PSQI, data = fmritbi))
+
+summary(lm(formula = c2_psqi_phg ~ PSQI + SITEID + PTAGE + PTEDUCAT + TBItotal + gdscore + ptsdcurr  + ptsdlife, data = fmritbi))
+
+summary(lm(formula = c1_psqi_phg ~ PSQI + SITEID + PTAGE + PTEDUCAT + gdscore + ptsdcurr  + ptsdlife, data = fmrinotbi))
+
+summary(lm(formula = c2_psqi_phg ~ PSQI + SITEID + PTAGE + PTEDUCAT + gdscore + ptsdcurr  + ptsdlife, data = fmrinotbi))
+fmri_2$AVPOS_change <- as.numeric(fmri_2$AVPOS_change)
+
+fmritbi$AVPOS_change <- as.numeric(fmritbi$AVPOS_change)
+fmrinotbi$AVPOS_change <- as.numeric(fmrinotbi$AVPOS_change)
+
+summary(lm(formula = psqi_stringent ~ AVPOS_change, data = fmritbi))
+
+summary(lm(formula = c2_psqi_phg ~ AVPOS_change + SITEID + PTAGE + PTEDUCAT + TBItotal + gdscore + ptsdcurr  + ptsdlife, data = fmritbi))
+
+summary(lm(formula = c1_psqi_phg ~ AVPOS_change + SITEID + PTAGE + PTEDUCAT + TBItotal + gdscore + ptsdcurr  + ptsdlife, data = fmrinotbi))
+
+summary(lm(formula = c2_psqi_phg ~ AVPOS_change + SITEID + PTAGE + PTEDUCAT + TBItotal + gdscore + ptsdcurr  + ptsdlife, data = fmrinotbi))
+```
+
+
+```{r}
+joined_data <- left_join(fmri_2, PSQI_2, by = "SCRNO")
+joined_data_dti <- left_join(data_adni, PSQI_2, by = "SCRNO")
+df <- joined_data_dti[ !(joined_data_dti$PSQ_comp1 %in% NA), ]
+
+joined_data_dti$PSQ_comp1 <- as.numeric(joined_data_dti$PSQ_comp1) 
+joined_data_dti$PSQ_comp2 <- as.numeric(joined_data_dti$PSQ_comp2) 
+joined_data_dti$PSQ_comp3 <- as.numeric(joined_data_dti$PSQ_comp3) 
+joined_data_dti$PSQ_comp4 <- as.numeric(joined_data_dti$PSQ_comp4) 
+joined_data_dti$PSQ_comp5 <- as.numeric(joined_data_dti$PSQ_comp5) 
+joined_data_dti$PSQ_comp6 <- as.numeric(joined_data_dti$PSQ_comp6) 
+joined_data_dti$PSQ_comp7 <- as.numeric(joined_data_dti$PSQ_comp7) 
+
+joined_data_dti$AVPOS_change <- as.numeric(joined_data_dti$AVPOS_change)
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp1 + TBI:PSQ_comp1 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp2 + TBI:PSQ_comp2 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp3 + TBI:PSQ_comp3 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp4 + TBI:PSQ_comp4 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp5 + TBI:PSQ_comp5 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp6 + TBI:PSQ_comp6 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp7 + TBI:PSQ_comp7 + TBI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp1 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = joined_data_dti))
+
+dtitbi <- subset(joined_data_dti, TBI=="1")
+dtinotbi <- subset(joined_data_dti, TBI=="0")
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp1 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtitbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp1 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtinotbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp3 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtitbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp3 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtinotbi))
+
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp4 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtitbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp4 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtinotbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp6 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtitbi))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp2 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = psqidf))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQ_comp7 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtitbi))
+
+summary(lm(formula = AVPOS_change ~ PSQ_comp1 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtinotbi))
+
+summary(lm(formula = AVPOS_change ~ PSQ_comp1 + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife, data = dtitbi))
+
+
+```
+
+#power analysis
+```{r}
+install.packages("pwr")
+library(pwr)
+
+pwr.f2.test(u=10,v=235,f2=0.09/(1-0.09),sig.level=0.05)
+
+```
+
+#dummy variables for morbities
+```{r}
+SCID$dummyvariable <- rowSums(SCID[ , c("BP1LA","MDL","DNL","MOODDGML","SIMDL","PSYL","ANXL","AGORL","SPL","PHOBL","OCDL","GADL", "ALC1","ALC2")], na.rm=TRUE)
+scid <- left_join(data_adni, SCID, by = "SCRNO")
+
+new.df <-  subset(SCID, select=c("dummyvariable", "SCRNO"))
+
+df <- left_join(data_adni, new.df, by = "SCRNO")
+
+df$gd <- cut(df$gdscore, breaks=c(1, 2, Inf), labels=c("0","1"))
+
+df$dummyvariable1 <- df$dummyvariable
+
+df$PTEDUCAT <- as.numeric(paste(df$PTEDUCAT))
+
+df$dummyvariable1 <- rowSums(df[ , c("dummyvariable","ptsdlife")], na.rm=TRUE)
+
+scid$ALC1[is.na(scid$ALC1)] = 0
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ ANXL, data = scid))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQI + TBI:PSQI + TBI + 
+    SITEID + TBItotal + PTAGE + PTEDUCAT + dummyvariable, data = df))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ TBI, data = df))
+
+```
+
+#differences
+```{r}
+sd(TBI$AD_anterior_internal_cap_l)
+
+sd(noTBI$AD_anterior_internal_cap_l)
+
+sd(TBI$AD_anterior_internal_cap_r)
+
+sd(noTBI$AD_anterior_internal_cap_r)
+
+mean(noTBI$AD_anterior_internal_cap_r)
+
+mean(TBI$AD_anterior_internal_cap_r)
+
+summary(lm(formula = AD_SLF_L ~ TBI  + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+sd(TBI$AD_post_internal_cap_r)
+
+sd(noTBI$AD_post_internal_cap_r)
+
+mean(noTBI$AD_post_internal_cap_r)
+
+mean(TBI$AD_post_internal_cap_r)
+
+
+sd(TBI$AD_post_internal_cap_l)
+
+sd(noTBI$AD_post_internal_cap_l)
+
+mean(noTBI$AD_post_internal_cap_l)
+
+mean(TBI$AD_post_internal_cap_l)
+
+t.test(TBI$AD_post_internal_cap_l, noTBI$AD_post_internal_cap_l)
+
+
+
+sd(TBI$AD_fornix)
+
+sd(noTBI$AD_fornix)
+
+mean(noTBI$AD_fornix)
+
+mean(TBI$AD_fornix)
+
+t.test(TBI$AD_fornix, noTBI$AD_fornix)
+
+
+
+sd(TBI$AD_SCR_L)
+
+sd(noTBI$AD_SCR_L)
+
+mean(noTBI$AD_SCR_L)
+
+mean(TBI$AD_SCR_L)
+
+t.test(TBI$AD_SCR_L, noTBI$AD_SCR_L)
+
+
+
+sd(TBI$AD_SCR_R)
+
+sd(noTBI$AD_SCR_R)
+
+mean(noTBI$AD_SCR_R)
+
+mean(TBI$AD_SCR_R)
+
+t.test(TBI$AD_SCR_R, noTBI$AD_SCR_R)
+
+
+sd(TBI$AD_SCR_L)
+
+sd(noTBI$AD_SCR_L)
+
+mean(noTBI$AD_SCR_L)
+
+mean(TBI$AD_SCR_L)
+
+t.test(TBI$AD_SCR_L, noTBI$AD_SCR_L)
+
+
+
+sd(TBI$AD_SLF_R)
+
+sd(noTBI$AD_SLF_R)
+
+mean(noTBI$AD_SLF_R)
+
+mean(TBI$AD_SLF_R)
+
+t.test(TBI$AD_SLF_R, noTBI$AD_SLF_R)
+
+
+
+sd(TBI$AD_SLF_L)
+
+sd(noTBI$AD_SLF_L)
+
+mean(noTBI$AD_SLF_L)
+
+mean(TBI$AD_SLF_L)
+
+t.test(TBI$AD_SLF_L, noTBI$AD_SLF_L)
+
+summary(lm(formula = AD_SLF_L ~ TBI  + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+
+
+```
+#interactions for paper
+```{r}
+summary(lm(formula = AD_SLF_L ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_SLF_R ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_SCR_L ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_SCR_R ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_post_internal_cap_l ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_post_internal_cap_r ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_anterior_internal_cap_l ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+summary(lm(formula = AD_anterior_internal_cap_r ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+
+summary(lm(formula = AD_fornix ~ PSQI + TBI + TBI:PSQI + SITEID + TBItotal + PTAGE + PTEDUCAT + gdscore + ptsdcurr + ptsdlife,data=df))
+
+```
+
+
+
+
+
